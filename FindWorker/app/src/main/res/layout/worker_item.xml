@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="22dp"
+    android:backgroundTint="#F6F7FB">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_gravity="top|start"
+            android:orientation="horizontal"
+            android:background="@drawable/rating_bg"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_star_rate"
+                app:tint="#FFB400"/>
+
+            <TextView
+                android:id="@+id/ratingText"
+                android:text="4.5"
+                android:textSize="12sp"
+                android:textColor="#111"
+                android:layout_marginStart="4dp"
+                android:fontFamily="@font/montserrat_semibold"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"/>
+        </LinearLayout>
+
+        <!-- ⭐ FAVORITE (PERFECT POSITION) -->
+        <ImageButton
+            android:id="@+id/favoriteButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/fav_circle_white"
+            android:src="@drawable/ic_favorite_border"
+            android:padding="6dp"
+            android:layout_gravity="top|end"
+            android:contentDescription="Favorite"
+            app:tint="#FF4F5A" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="16dp">
+
+            <!-- PROFILE IMAGE -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="82dp"
+                android:layout_height="82dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_boy"
+                android:layout_marginBottom="8dp"
+                app:shapeAppearanceOverlay="@drawable/circular_background" />
+
+            <!-- NAME -->
+            <TextView
+                android:id="@+id/nameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="John Doe"
+                android:textSize="17sp"
+                android:textColor="#111"
+                android:fontFamily="@font/montserrat_bold" />
+
+            <!-- PROFESSION -->
+            <TextView
+                android:id="@+id/professionTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Electrician"
+                android:textSize="13sp"
+                android:textColor="#4A6CF7"
+                android:textStyle="bold"
+                android:fontFamily="@font/poppins"
+                android:layout_marginTop="2dp"/>
+
+
+
+
+                <TextView
+                    android:id="@+id/distanceTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="•  1.2 km"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
+                    android:textColor="#444"
+                    android:fontFamily="@font/montserrat_semibold"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#4A148C">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- ETA SECTION -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:gravity="center"
+            android:background="@drawable/gradient_bg"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/arrivingInText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ARRIVING IN"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/etaTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="13 min"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="36sp" />
+
+        </LinearLayout>
+
+        <!-- STATUS STEPS -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <TextView
+                android:id="@+id/statusPacking"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• STARTED"
+                android:textColor="#00E676"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="   —   " />
+
+            <TextView
+                android:id="@+id/statusOnTheWay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ON THE WAY"
+                android:textColor="#9E9E9E" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="   —   " />
+
+            <TextView
+                android:id="@+id/statusArrived"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ARRIVED"
+                android:textColor="#9E9E9E" />
+
+        </LinearLayout>
+
+        <!-- DELAY WARNING -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/rounded_white"
+            android:padding="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:text="Expecting delay due to high demand"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:textColor="#000" />
+
+            <TextView
+                android:text="Your worker might reach a bit late"
+                android:textSize="14sp"
+
+                android:textColor="#555"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"/>
+        </LinearLayout>
+
+        <!-- WORKER CARD -->
+        <LinearLayout
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_white"
+            android:padding="14dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/workerImage"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_person"
+                android:background="@drawable/circular_background"
+                android:padding="10dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="14dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/workerName"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:text="Hi, I'm Manish (Worker)"
+                    android:textStyle="bold"
+                    android:textColor="#000"
+                    android:textSize="16sp"/>
+
+                <TextView
+                    android:id="@+id/workerStatus"
+                    android:text="Vaccinated"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:textColor="#FF7043"
+                    android:layout_marginTop="4dp"/>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- BUTTON: VIEW LIVE LOCATION -->
+        <Button
+            android:id="@+id/btnLive"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="VIEW LIVE LOCATION"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#6200EE"
+            android:layout_marginTop="20dp"/>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F8FA">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <!-- LOADING PROGRESS -->
+        <ProgressBar
+            android:id="@+id/loadingProgress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
+            android:visibility="gone" />
+
+
+        <!-- HEADER -->
+        <TextView
+            android:text="Booking Details"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#1C1C1C"
+            android:letterSpacing="0.02"
+            android:fontFamily="@font/montserrat_bold"
+            android:layout_marginBottom="4dp"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"/>
+
+
+        <!-- WORKER INFO CARD -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true"
+            android:layout_marginBottom="4dp">
+
+            <LinearLayout
+                android:padding="16dp"
+                android:background="@color/white"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/workerNameText"
+                    android:text="Ravi Electrician"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/montserrat_semibold"
+                    android:textColor="#212121"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <!-- STATUS BADGE -->
+                <TextView
+                    android:id="@+id/statusText"
+                    android:text="PENDING"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF9800"
+                    android:background="@drawable/status_bg"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/dateText"
+                    android:text="Booked on 6 Feb 2026"
+                    android:textSize="13sp"
+                    android:textColor="#757575"
+                    android:layout_marginTop="6dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/otpText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OTP: 1234"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50"
+                    android:layout_marginTop="6dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/completeOtpText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OTP: 1234"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50"
+                    android:layout_marginTop="6dp"
+                    android:visibility="gone"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- BOOKING PROGRESS -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- TITLE -->
+                <TextView
+                    android:text="Booking Progress"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:fontFamily="@font/montserrat_semibold"
+                    android:layout_marginBottom="16dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <!-- 🔵 CIRCLES + LINES -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp">
+
+                    <View
+                        android:id="@+id/circleAccepted"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:background="@drawable/ic_circle_grey" />
+
+                    <View
+                        android:id="@+id/lineAccepted"
+                        android:layout_width="0dp"
+                        android:layout_height="2dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="6dp"
+                        android:background="#BDBDBD" />
+
+                    <View
+                        android:id="@+id/circleStarted"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:background="@drawable/ic_circle_grey" />
+
+                    <View
+                        android:id="@+id/lineStarted"
+                        android:layout_width="0dp"
+                        android:layout_height="2dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="6dp"
+                        android:background="#BDBDBD" />
+
+                    <View
+                        android:id="@+id/circleReached"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:background="@drawable/ic_circle_grey" />
+
+                    <View
+                        android:id="@+id/lineReached"
+                        android:layout_width="0dp"
+                        android:layout_height="2dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="6dp"
+                        android:background="#BDBDBD" />
+
+                    <View
+                        android:id="@+id/circleCompleted"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:background="@drawable/ic_circle_grey" />
+
+                </LinearLayout>
+
+
+                <!-- 🏷️ LABELS -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/stepAccepted"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="Accepted"
+                        android:textSize="12sp"
+                        android:textColor="#757575"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:id="@+id/stepStarted"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="Started"
+                        android:textSize="12sp"
+                        android:textColor="#757575"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/stepReached"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="Reached"
+                        android:textSize="12sp"
+                        android:textColor="#757575"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:id="@+id/stepCompleted"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="Completed"
+                        android:textSize="12sp"
+                        android:textColor="#757575"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <!-- DISTANCE -->
+                <TextView
+                    android:id="@+id/distanceText"
+                    android:text="Worker distance: --"
+                    android:textSize="14sp"
+                    android:textColor="#212121"
+                    android:layout_marginTop="16dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/lastUpdatedText"
+                    android:text="Last updated: --"
+                    android:textSize="12sp"
+                    android:textColor="#757575"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
+
+        <!-- ⭐ REVIEW + WORK IMAGE CARD (HIDDEN INITIALLY) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/reviewCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true"
+            android:backgroundTint="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <!-- HEADING -->
+                <TextView
+                    android:text="Service Rating and Reviews"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/montserrat_semibold"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"/>
+
+                <TextView
+                    android:text="Your feedback helps us improve"
+                    android:textSize="13sp"
+                    android:textColor="#757575"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <!-- WORK IMAGE -->
+                <ImageView
+                    android:id="@+id/workImageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    android:layout_marginTop="12dp"
+                    android:scaleType="centerCrop"
+                    android:background="#ECEFF1"
+                    android:contentDescription="Work Image" />
+
+                <!-- UPLOAD IMAGE -->
+                <Button
+                    android:id="@+id/uploadImageBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Upload Work Image"
+                    android:textAllCaps="false"
+                    android:fontFamily="@font/montserrat_semibold"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="#2874F0"
+                    android:layout_marginTop="10dp" />
+
+                <!-- RATING -->
+                <RatingBar
+                    android:id="@+id/ratingBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:stepSize="1"
+                    android:rating="0"
+                    android:layout_marginTop="12dp" />
+
+                <!-- FEEDBACK -->
+                <EditText
+                    android:id="@+id/feedbackInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:hint="Write your feedback..."
+                    android:gravity="top|start"
+                    android:padding="10dp"
+                    android:textColor="#000"
+                    android:textColorHint="#777"
+                    android:background="@drawable/edittext_background"
+                    android:layout_marginTop="10dp" />
+
+                <!-- SUBMIT -->
+                <Button
+                    android:id="@+id/submitReviewBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Submit Review"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/montserrat_semibold"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="#4CAF50"
+                    android:layout_marginTop="12dp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+
+
+    </LinearLayout>
+</ScrollView>

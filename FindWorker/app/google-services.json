@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "19001318585",
+    "firebase_url": "https://find-worker-244ed-default-rtdb.firebaseio.com",
+    "project_id": "find-worker-244ed",
+    "storage_bucket": "find-worker-244ed.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19001318585:android:525ee2275e75ebfaaa0f68",
+        "android_client_info": {
+          "package_name": "com.example.findworker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "19001318585-30fsvoduopp3tq15dm8pujfhdpnhohdb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.findworker",
+            "certificate_hash": "c2a9a81d05ebc33fbfb9014e5c7f394a471321a0"
+          }
+        },
+        {
+          "client_id": "19001318585-m62j8n3rst4vnqm51e3qfclu2a9s86ip.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9jv2wlYMZ8O2U8uitA-khMY4ZXSLfsMA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "19001318585-m62j8n3rst4vnqm51e3qfclu2a9s86ip.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

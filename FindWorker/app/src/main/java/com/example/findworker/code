@@ -1,0 +1,931 @@
+package com.example.findworker;
+
+import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Build;
+import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.SearchView;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+
+
+public class Homepage extends AppCompatActivity {
+    private ProgressBar loadingSpinner;
+    private RecyclerView recyclerView;
+    private WorkerAdapter workerAdapter;
+    private ArrayList<Worker> workerList;
+    private ArrayList<Worker> filteredWorkerList;
+    private SearchView searchView;
+    private TextView locationText;
+    private SharedPreferences preferences;
+    private ArrayList<String> locationList;
+    private static final String PREFS_NAME = "MyAppPrefs";
+    private static final String LOCATION_KEY = "user_location";
+    private AdView adView;
+    private ImageButton btnMic;
+    private static final int VOICE_INPUT_CODE = 100;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_homepage);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.krishna)); // Replace with your color
+        }
+
+        MobileAds.initialize(this, initializationStatus -> {});
+
+        // Load ad
+        adView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("");
+
+        btnMic = findViewById(R.id.btnMic);
+        loadingSpinner = findViewById(R.id.loading_spinner);
+        recyclerView = findViewById(R.id.recyclerView);
+        searchView = findViewById(R.id.searchView);
+        locationText = findViewById(R.id.location_text);
+
+        preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        workerList = new ArrayList<>();
+        filteredWorkerList = new ArrayList<>();
+        workerAdapter = new WorkerAdapter(filteredWorkerList);
+        recyclerView.setAdapter(workerAdapter);
+
+        String savedLocation = preferences.getString(LOCATION_KEY, "All");
+        locationText.setText(savedLocation);
+        locationText.setOnClickListener(v -> openLocationPicker());
+
+        btnMic.setOnClickListener(v -> startVoiceInput());
+
+        searchView.setIconifiedByDefault(false);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override public boolean onQueryTextSubmit(String query) { return false; }
+
+            @Override public boolean onQueryTextChange(String newText) {
+                filterWorkers(searchView.getQuery().toString(), locationText.getText().toString().replace("Location: ", ""));
+                return true;
+            }
+        });
+        if (!isNetworkAvailable()) {
+            showNoInternetAlert();
+        } else {
+            loadDataFromFirebase();
+            // Proceed with loading data or performing other operations
+        }
+
+    }
+
+
+    private void openLocationPicker() {
+
+        if (!isNetworkAvailable()) { // or use isInternetAccessible()
+            showNoInternetAlert();
+            return;
+        }
+        View sheetView = getLayoutInflater().inflate(R.layout.location_picker, null);
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(sheetView);
+
+        RecyclerView locationRecycler = sheetView.findViewById(R.id.location_recycler);
+        locationRecycler.setLayoutManager(new LinearLayoutManager(this));
+
+        List<String> locations = new ArrayList<>();
+        LocationAdapter adapter = new LocationAdapter(locations, selectedLocation -> {
+            preferences.edit().putString(LOCATION_KEY, selectedLocation).apply();
+            locationText.setText(selectedLocation);
+            filterWorkers(searchView.getQuery().toString(), selectedLocation);
+            bottomSheetDialog.dismiss();
+        });
+        locationRecycler.setAdapter(adapter);
+
+        SearchView search = sheetView.findViewById(R.id.search);
+        search.setIconifiedByDefault(false);
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Filter the location list in the adapter
+                adapter.getFilter().filter(newText); // very important!
+                return true;
+            }
+        });
+
+
+        FirebaseDatabase.getInstance().getReference("locations")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Set<String> locationSet = new HashSet<>();
+                        locations.clear(); // Clear before updating
+                        for (DataSnapshot locationSnapshot : snapshot.getChildren()) {
+                            String location = locationSnapshot.getKey();
+                            Boolean isActive = locationSnapshot.getValue(Boolean.class);
+                            if (Boolean.TRUE.equals(isActive)) {
+                                locationSet.add(location);
+                            }
+                        }
+
+                        locations.add("All");
+                        locations.addAll(locationSet);
+
+                        if (adapter != null) {
+                            adapter.notifyDataSetChanged();
+                        }
+
+
+                        // Show bottom sheet now that data is ready
+                        bottomSheetDialog.show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(Homepage.this, "Failed to load locations", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void loadDataFromFirebase() {
+
+        loadingSpinner.setVisibility(View.VISIBLE);
+        FirebaseDatabase.getInstance().getReference("workers")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        workerList.clear();
+                        for (DataSnapshot ds : snapshot.getChildren()) {
+                            Worker worker = ds.getValue(Worker.class);
+                            if (worker != null) {
+                                workerList.add(worker);
+                            }
+                        }
+
+                        // Apply filters on loaded data
+                        String savedLocation = preferences.getString(LOCATION_KEY, "All");
+                        filterWorkers(searchView.getQuery().toString(), savedLocation);
+
+                        loadingSpinner.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        loadingSpinner.setVisibility(View.GONE);
+                        Toast.makeText(Homepage.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void filterWorkers(String professionQuery, String location) {
+        filteredWorkerList.clear();
+        for (Worker worker : workerList) {
+            boolean matchesProfession = worker.getProfession().toLowerCase().contains(professionQuery.toLowerCase());
+            boolean matchesLocation = location.equals("All") || worker.getLocation().toLowerCase().equals(location.toLowerCase());
+            if (matchesProfession && matchesLocation) {
+                filteredWorkerList.add(worker);
+            }
+        }
+        workerAdapter.notifyDataSetChanged();
+    }
+
+    private void startVoiceInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak your profession");
+
+        try {
+            startActivityForResult(intent, VOICE_INPUT_CODE);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Your device doesn't support voice input", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void filterWorkersByLocation(String location) {
+        filteredWorkerList.clear();
+        if (location.equals("All")) {
+            filteredWorkerList.addAll(workerList);
+        } else {
+            for (Worker worker : workerList) {
+                if (worker.getLocation().equals(location)) {
+                    filteredWorkerList.add(worker);
+                }
+            }
+        }
+        workerAdapter.notifyDataSetChanged();
+    }
+
+    public void add_worker(View view){
+        Intent intent =  new Intent(Homepage.this, add_worker.class);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.refresh) {
+            loadDataFromFirebase();
+        } else if (itemId == R.id.join_worker) {
+            Intent intent = new Intent(Homepage.this, add_worker.class);
+            startActivity(intent);
+        } else if (itemId == R.id.edit) {
+            Intent intent = new Intent(Homepage.this, Update_worker_details.class);
+            startActivity(intent);
+        } else if (itemId == R.id.share) {
+            Toast.makeText(this, "Share", Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.Settings) {
+            Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.ads) {
+            Intent intent = new Intent(Homepage.this, AdsPage.class);
+            startActivity(intent);
+        } else if (itemId == R.id.rateus) {
+            Toast.makeText(this, "Thanks For Rating Us", Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.logout) {
+            finish();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        if (menu != null) {
+            if (menu.getClass().getSimpleName().equals("MenuBuilder")) {
+                try {
+                    Method m = menu.getClass().getDeclaredMethod("setOptionalIconsVisible", Boolean.TYPE);
+                    m.setAccessible(true);
+                    m.invoke(menu, true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return super.onMenuOpened(featureId, menu);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.home_menu, menu);
+        return true;
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnected();
+    }
+
+    // Method to show the "No Internet" alert
+    private void showNoInternetAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("No Internet Connection")
+                .setMessage("Please check your internet connection and try again.")
+                .setCancelable(false)
+                .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (isNetworkAvailable()) {
+                            loadDataFromFirebase();
+                            dialog.dismiss();
+                        } else {
+                            Toast.makeText(Homepage.this, "Still no connection!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish(); // Close the app
+                    }
+                });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == VOICE_INPUT_CODE && resultCode == RESULT_OK && data != null) {
+            // Get the speech result as a list of strings
+            ArrayList<String> speechResults = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (speechResults != null && !speechResults.isEmpty()) {
+                String spokenText = speechResults.get(0); // Get the first result (the most accurate one)
+                // You can now use the spokenText, for example, to filter workers by profession
+                searchView.setQuery(spokenText, false); // Set the query to the SearchView
+                filterWorkers(spokenText, locationText.getText().toString().replace("Location: ", ""));
+            }
+        }
+    }
+
+}
+
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".Homepage">
+
+    <ImageButton
+        android:id="@+id/btnMic"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_mic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.157"
+        app:layout_constraintStart_toEndOf="@+id/searchView"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:background="@color/white"
+        android:elevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title=""
+        app:titleTextColor="@android:color/white">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start|center_vertical"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="1dp">
+
+            <ImageView
+                android:id="@+id/location_icon"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_location" />
+            <!---->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/small_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins"
+                    android:text="Select Your Location"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/location_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/montserrat_semibold"
+                    android:text="Not Set"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#DDDDDD"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <!-- RecyclerView -->
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="12dp"
+        android:queryHint="Search Profession"
+        android:iconifiedByDefault="false"
+        android:background="@drawable/bg_searchview"
+        android:inputType="text"
+        android:elevation="6dp"
+        android:padding="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnMic"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"/>
+
+
+
+    <HorizontalScrollView
+        android:id="@+id/horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/searchView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/recommendationChips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            app:singleLine="true"
+            app:singleSelection="false"
+            app:chipSpacing="8dp"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/professionRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        app:layout_constraintTop_toBottomOf="@id/horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <View
+        android:id="@+id/border"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:background="#DDDDDD"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/professionRecyclerView"
+        app:layout_constraintBottom_toTopOf="@id/swipeRefreshLayout"/>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/border"
+        tools:ignore="MissingClass">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="16dp"
+            android:clipToPadding="false"
+            android:paddingTop="8dp" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="No workers found"
+        android:textSize="16sp"
+        android:fontFamily="@font/montserrat_bold"
+        android:textColor="@android:color/darker_gray"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/swipeRefreshLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+
+    <ProgressBar
+        android:id="@+id/loading_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginTop="16dp"
+        android:indeterminate="true"
+        android:theme="@style/Theme.AppCompat.Light"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+    <ViewFlipper
+        android:id="@+id/ad_flipper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:autoStart="true"
+        android:flipInterval="4000"
+        android:inAnimation="@android:anim/slide_in_left"
+        android:outAnimation="@android:anim/slide_out_right"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+
+    </ViewFlipper>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F8F8"
+    tools:context=".Homepage">
+
+    <View
+        android:id="@+id/header_bg"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:background="@color/chip_selected"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/toolbar_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="16dp"
+        android:paddingHorizontal="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/location_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_location" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/small_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CURRENT LOCATION"
+                android:textColor="#FFFFFF80"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/location_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Not Set, Tap to Select"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"
+                android:drawableEnd="@drawable/ic_right"
+                android:drawablePadding="4dp"
+                app:drawableTint="@color/white"/>
+        </LinearLayout>
+        <ImageButton
+            android:id="@+id/btnMenu"  android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_menu"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/searchCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_settings"
+                app:tint="#666666"
+                android:contentDescription="Search Icon"/>
+
+            <SearchView
+                android:id="@+id/searchView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:queryHint="Search for Plumbers, Electricians..."
+                android:iconifiedByDefault="false"
+                android:queryBackground="@android:color/transparent"
+                android:background="@android:color/transparent"
+                android:inputType="text"
+                android:padding="0dp"
+                android:textSize="16sp" />
+
+            <ImageButton
+                android:id="@+id/btnMic"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_mic"
+                app:tint="@color/black"
+                android:contentDescription="Voice Search"/>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/searchCard"
+        app:layout_constraintBottom_toTopOf="@id/ad_flipper">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/title_recommendations"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quick Search Categories"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#333"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <HorizontalScrollView
+                android:id="@+id/horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                app:layout_constraintTop_toBottomOf="@id/title_recommendations">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/recommendationChips"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="8dp"
+                    app:singleLine="true"
+                    app:singleSelection="false"
+                    app:chipSpacingHorizontal="8dp"
+                    app:chipSpacingVertical="0dp"
+                    android:orientation="horizontal">
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
+
+
+            <androidx.recyclerview.widget.RecyclerView
+
+                android:id="@+id/professionRecyclerView"
+
+                android:layout_width="0dp"
+
+                android:layout_height="wrap_content"
+
+                android:clipToPadding="false"
+
+                android:paddingStart="8dp"
+
+                android:paddingEnd="8dp"
+
+                app:layout_constraintTop_toBottomOf="@id/horizontal"
+                app:layout_constraintBottom_toTopOf="@id/recyclerView"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:ignore="NotSibling" />
+
+            <View
+                android:id="@+id/separator"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="#EEEEEE"
+                android:layout_marginTop="0dp"
+                app:layout_constraintTop_toBottomOf="@id/professionRecyclerView"/>
+
+            <TextView
+                android:id="@+id/title_listings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Recommended Helpers"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintTop_toBottomOf="@id/separator"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipeRefreshLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title_listings">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+
+                    android:layout_width="match_parent"
+
+                    android:layout_height="match_parent"
+
+                    android:layout_marginStart="16dp"
+
+                    android:layout_marginTop="10dp"
+
+                    android:layout_marginEnd="16dp"
+
+                    android:clipToPadding="false"
+
+                    android:paddingTop="8dp" />
+
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            <TextView
+                android:id="@+id/empty_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No workers found. Try adjusting your search."
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#AAAAAA"
+                android:gravity="center"
+                android:layout_marginTop="50dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/title_listings"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <ProgressBar
+                android:id="@+id/loading_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="32dp"
+                app:layout_constraintTop_toBottomOf="@id/title_listings"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <ViewFlipper
+        android:id="@+id/ad_flipper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autoStart="true"
+        android:flipInterval="4000"
+        android:inAnimation="@android:anim/slide_in_left"
+        android:outAnimation="@android:anim/slide_out_right"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+    </ViewFlipper>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+AIzaSyDISOUhwJIDQeiT1Y7BvqfRC4lcsXRFh2E

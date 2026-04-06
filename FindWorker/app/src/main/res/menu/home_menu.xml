@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/refresh"
+        android:icon="@drawable/ic_refresh"
+        android:title="Refresh"
+        app:showAsAction="always"
+        android:iconTint="@color/black"
+        android:visible="true"
+
+        />
+    <item
+        android:id="@+id/MyFavourites"
+        android:icon="@drawable/ic_favorite_border"
+        android:title="My Favourites"
+        app:showAsAction="always"
+        android:iconTint="@color/black"
+        />
+
+    <item
+        android:id="@+id/nearBy"
+        android:icon="@drawable/ic_nearby"
+        android:title="Nearby Helpers"
+        app:showAsAction="always"
+        android:iconTint="@color/black"/>
+
+    <item
+        android:id="@+id/ads"
+        android:title="Ads"
+        />
+
+    <item
+        android:id="@+id/rateus"
+        android:title="Rate us"
+        />
+    <item
+        android:id="@+id/share"
+        android:title="Share"
+        />
+    <item
+        android:id="@+id/logout"
+        android:title="Logout"
+        />
+
+</menu>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/worker"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:roundIcon="@mipmap/worker"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.FindWorker"
+        tools:targetApi="31">
+        <activity
+            android:name=".BookingDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Tracking"
+            android:exported="false" />
+        <activity
+            android:name=".TrackingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerHome"
+            android:exported="false"
+            android:label="@string/title_activity_worker_home"
+            android:theme="@style/Theme.FindWorker.NoActionBar" />
+        <activity
+            android:name=".WorkerHomepage"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerVerification"
+            android:exported="false" />
+        <activity
+            android:name=".LanguageSelection"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerRegistration"
+            android:exported="false" />
+        <activity
+            android:name=".VoiceRegistrationML"
+            android:exported="false" />
+        <activity
+            android:name=".whispermodel"
+            android:exported="false" />
+        <activity
+            android:name=".WhisperActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WhisperMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WhisperModel"
+            android:exported="false" />
+        <activity
+            android:name=".VoskModel"
+            android:exported="false" />
+        <activity
+            android:name=".Language"
+            android:exported="false" />
+        <activity
+            android:name=".Langauge"
+            android:exported="false" />
+        <activity
+            android:name=".LanguageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerData"
+            android:exported="false" />
+        <activity
+            android:name=".Options"
+            android:exported="false" />
+        <activity
+            android:name=".VoiceRegistrationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChatBot"
+            android:exported="false" />
+        <activity
+            android:name=".WorkersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SubProfessionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LocationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkerDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FavoritesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ForgotPassword"
+            android:exported="false" />
+        <activity
+            android:name=".SignUp"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdsPage"
+            android:exported="false" />
+        <activity
+            android:name=".Update_worker_details"
+            android:exported="false" />
+        <activity
+            android:name=".add_worker"
+            android:exported="false" />
+        <activity
+            android:name=".Homepage"
+            android:exported="false"
+            android:label="" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+    </application>
+
+</manifest>
