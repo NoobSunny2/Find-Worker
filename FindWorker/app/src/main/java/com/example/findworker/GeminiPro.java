@@ -13,7 +13,7 @@ import okhttp3.*;
 
 public class GeminiPro {
 
-    private static final String API_KEY = "AIzaSyDISOUhwJIDQeiT1Y7BvqfRC4lcsXRFh2E";
+    private static final String API_KEY = "API_KEY";
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
 
     private final OkHttpClient client;
